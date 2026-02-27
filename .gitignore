@@ -1,0 +1,17 @@
+# Fichiers sensibles à ne jamais committer
+*.pfx
+*.p12
+*.key
+*.crt
+*.cer
+*.req
+C:\KPI\
+KPI\*.html
+
+# Logs
+*.log
+*.evtx
+
+# Fichiers Windows
+Thumbs.db
+desktop.ini
