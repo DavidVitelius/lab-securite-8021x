@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accès VMs — Lab Sécurité 802.1X</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">🔐 <span>Lab</span> Sécurité 802.1X</a>
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="procedure.html">Procédure</a></li>
+      <li><a href="kpi.html">KPI</a></li>
+      <li><a href="acces-vm.html" class="active">Accès VMs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3rem 2rem;">
+  <div class="badge">Accès sécurisé</div>
+  <h1>Portail d'accès aux VMs</h1>
+  <p>Connexion aux machines virtuelles via Apache Guacamole (RDP over HTTPS) — sans client RDP</p>
+</header>
+
+<!-- GUACAMOLE INFO -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Apache Guacamole — Qu'est-ce que c'est ?</h2>
+    <div class="divider"></div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>Accès 100% navigateur</h3>
+        <p>Guacamole est une passerelle RDP/VNC/SSH accessible via HTTPS depuis n'importe quel navigateur,
+           sans installer de logiciel client.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Connexion chiffrée</h3>
+        <p>Tout le trafic entre le navigateur et les VMs est chiffré via TLS.
+           Le certificat SSL est émis par la SubCA du lab.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👤</div>
+        <h3>Authentification centralisée</h3>
+        <p>Connexion au portail Guacamole avec identifiants. Chaque VM est accessible
+           selon les droits accordés à l'utilisateur.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTAIL ACCÈS -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Accès aux machines</h2>
+    <div class="divider"></div>
+
+    <div class="access-panel">
+      <h3>🖥️ Portail Guacamole</h3>
+      <p>
+        Adresse du portail : <strong>https://192.168.10.40/guacamole</strong><br>
+        <small style="color: #88aacc;">Remplacer l'IP par celle de ta Gateway01 une fois déployée.</small>
+      </p>
+      <div class="vm-list">
+
+        <div class="vm-card" id="dc01">
+          <div class="vm-icon">🏢</div>
+          <div class="vm-name">DC01</div>
+          <div class="vm-role">Contrôleur de domaine<br><small>192.168.10.10</small></div>
+          <a href="https://192.168.10.40/guacamole/#/client/dc01" class="vm-btn" target="_blank">
+            Connexion RDP →
+          </a>
+        </div>
+
+        <div class="vm-card" id="rootca">
+          <div class="vm-icon">🔐</div>
+          <div class="vm-name">RootCA01</div>
+          <div class="vm-role">CA Racine<br><small>192.168.10.20</small></div>
+          <a href="https://192.168.10.40/guacamole/#/client/rootca01" class="vm-btn" target="_blank">
+            Connexion RDP →
+          </a>
+        </div>
+
+        <div class="vm-card" id="subca">
+          <div class="vm-icon">🏅</div>
+          <div class="vm-name">SubCA01 / NPS</div>
+          <div class="vm-role">CA Subordonnée + RADIUS<br><small>192.168.10.30</small></div>
+          <a href="https://192.168.10.40/guacamole/#/client/subca01" class="vm-btn" target="_blank">
+            Connexion RDP →
+          </a>
+        </div>
+
+        <div class="vm-card" id="client">
+          <div class="vm-icon">💻</div>
+          <div class="vm-name">Client01</div>
+          <div class="vm-role">Poste client test 802.1X<br><small>DHCP</small></div>
+          <a href="https://192.168.10.40/guacamole/#/client/client01" class="vm-btn" target="_blank">
+            Connexion RDP →
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <p style="color: var(--muted); font-size:.9rem; margin-top: 1rem;">
+      ℹ️ Les liens ci-dessus fonctionnent uniquement une fois Gateway01 déployé et Guacamole configuré
+      (voir script <code>scripts/08-Install-Guacamole.sh</code>).
+    </p>
+  </div>
+</section>
+
+<!-- INSTALLATION GUACAMOLE -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Installation de Guacamole (Gateway01)</h2>
+    <div class="divider"></div>
+    <p style="color:var(--muted); margin-bottom: 1rem;">
+      Créer une VM Ubuntu Server 22.04 (1 Go RAM, IP : 192.168.10.40), puis exécuter :
+    </p>
+
+    <pre><code># Télécharger et exécuter le script d'installation
+git clone https://github.com/DavidVitelius/lab-securite-8021x.git
+cd lab-securite-8021x
+sudo bash scripts/08-Install-Guacamole.sh</code></pre>
+
+    <p style="margin-top: 1.2rem; color:var(--muted);">
+      Le script installe automatiquement :<br>
+      &nbsp;&nbsp;✔ Guacamole Server (guacd) + Client Web<br>
+      &nbsp;&nbsp;✔ Apache2 avec proxy HTTPS<br>
+      &nbsp;&nbsp;✔ Certificat SSL auto-signé<br>
+      &nbsp;&nbsp;✔ Connexions RDP préconfigurées pour les 4 VMs<br>
+    </p>
+
+    <h3 style="margin-top: 2rem; margin-bottom: .5rem;">Première connexion</h3>
+    <table>
+      <thead><tr><th>Champ</th><th>Valeur</th></tr></thead>
+      <tbody>
+        <tr><td>URL</td><td><code>https://192.168.10.40/guacamole</code></td></tr>
+        <tr><td>Utilisateur</td><td><code>guacadmin</code></td></tr>
+        <tr><td>Mot de passe</td><td><code>guacadmin</code> <em>(à changer immédiatement)</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Portfolio BTS SIO — Kael Vitelius &nbsp;|&nbsp; Digicel Caribbean Ltd &nbsp;|&nbsp;
+     <a href="https://github.com/DavidVitelius/lab-securite-8021x" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>

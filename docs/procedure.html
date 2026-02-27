@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Procédure — Lab Sécurité 802.1X</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">🔐 <span>Lab</span> Sécurité 802.1X</a>
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="procedure.html" class="active">Procédure</a></li>
+      <li><a href="kpi.html">KPI</a></li>
+      <li><a href="acces-vm.html">Accès VMs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3rem 2rem;">
+  <div class="badge">Guide d'installation</div>
+  <h1>Procédure de déploiement</h1>
+  <p>Étapes d'installation et de configuration de l'infrastructure 802.1X</p>
+</header>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">Prérequis</h2>
+    <div class="divider"></div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">💿</div>
+        <h3>ISO Windows Server 2022</h3>
+        <p>ISO de Windows Server 2022 Datacenter pour les VMs DC01, RootCA01, SubCA01.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🖥️</div>
+        <h3>Hyperviseur VMware</h3>
+        <p>VMware Workstation / vSphere. Réseau interne : 192.168.10.0/24.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Ressources minimum</h3>
+        <p>8 Go RAM disponibles pour les VMs. 60 Go de disque libre pour les VMs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">Étapes de déploiement</h2>
+    <div class="divider"></div>
+
+    <div class="timeline">
+
+      <!-- ÉTAPE 1 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 1 — DC01</span>
+        <h4>Installation Active Directory</h4>
+        <p>Créer la VM DC01, installer Windows Server 2022, puis exécuter le script :</p>
+        <pre><code># PowerShell — En tant qu'Administrateur sur DC01
+.\scripts\01-Install-AD.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Installe AD DS, DNS, DHCP — Crée le domaine <strong>lab.local</strong> — Redémarre automatiquement.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 2 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 2 — RootCA01</span>
+        <h4>Installation de la CA Racine (Standalone)</h4>
+        <p>Créer la VM RootCA01, <strong>ne pas la joindre au domaine</strong>, puis :</p>
+        <pre><code># PowerShell — En tant qu'Administrateur sur RootCA01
+.\scripts\02-Install-PKI-RootCA.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Installe AD CS en mode Standalone Root CA — RSA 4096 bits — Durée 10 ans.<br>
+          ⚠️ Copier le fichier <code>C:\Windows\System32\CertSrv\CertEnroll\*.crt</code> vers DC01 et SubCA01.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 3 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 3 — SubCA01</span>
+        <h4>Installation de la CA Subordonnée</h4>
+        <p>Créer la VM SubCA01, la joindre au domaine <strong>lab.local</strong>, puis :</p>
+        <pre><code># PowerShell — En tant qu'Administrateur sur SubCA01
+.\scripts\03-Install-PKI-SubCA.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Génère une CSR (<code>C:\SubCA.req</code>) à soumettre à la Root CA.<br>
+          ⚠️ Étape manuelle : soumettre la CSR à RootCA01, récupérer le certificat signé, l'installer.
+        </p>
+        <pre><code># Sur RootCA01 — Signer la CSR de SubCA
+certreq -submit C:\SubCA.req C:\SubCA.crt
+
+# Sur SubCA01 — Installer le certificat signé
+certutil -installcert C:\SubCA.crt
+net start CertSvc</code></pre>
+      </div>
+
+      <!-- ÉTAPE 4 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 4 — SubCA01</span>
+        <h4>Configuration des templates de certificats</h4>
+        <pre><code># PowerShell — En tant qu'Administrateur sur SubCA01
+.\scripts\04-Configure-Templates.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Active les templates : Computer, User, RASAndIASServer (serveur NPS).
+        </p>
+      </div>
+
+      <!-- ÉTAPE 5 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 5 — SubCA01</span>
+        <h4>Installation du serveur NPS (RADIUS)</h4>
+        <pre><code># PowerShell — En tant qu'Administrateur sur SubCA01
+.\scripts\05-Install-NPS.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Installe le rôle NPS — Enregistre dans AD — Ajoute les clients RADIUS (switches/AP) —
+          Obtient le certificat serveur NPS depuis la CA.<br>
+          ⚠️ Mettre à jour les IPs et secrets RADIUS dans le script avant exécution.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 6 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 6 — SubCA01</span>
+        <h4>Configuration des politiques 802.1X</h4>
+        <pre><code># PowerShell — En tant qu'Administrateur sur SubCA01
+.\scripts\06-Configure-8021x.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Crée les politiques NPS pour 802.1X Ethernet et 802.1X WiFi avec EAP-TLS.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 7 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 7 — DC01</span>
+        <h4>Configuration GPO auto-enrollment</h4>
+        <pre><code># PowerShell — En tant qu'Administrateur sur DC01
+.\scripts\07-Configure-GPO.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Crée et lie la GPO <em>GPO-Securite-8021X</em> au domaine —
+          Active l'auto-enrollment des certificats ordinateurs et utilisateurs.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 8 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 8 — Gateway01</span>
+        <h4>Installation Apache Guacamole (accès web sécurisé)</h4>
+        <pre><code># Bash — En tant que root sur Gateway01 (Ubuntu Server 22.04)
+bash scripts/08-Install-Guacamole.sh</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Installe Apache Guacamole avec HTTPS — Configure l'accès RDP aux VMs —
+          Portail disponible sur <code>https://192.168.10.40/guacamole</code>.
+        </p>
+      </div>
+
+      <!-- ÉTAPE 9 -->
+      <div class="timeline-item">
+        <span class="tag">Étape 9 — DC01</span>
+        <h4>Génération du rapport KPI</h4>
+        <pre><code># PowerShell — En tant qu'Administrateur sur DC01
+.\kpi\Get-SecurityKPI.ps1</code></pre>
+        <p style="margin-top:.5rem; color: var(--muted);">
+          ✔ Génère un rapport HTML dans <code>C:\KPI\</code> avec tous les indicateurs de sécurité.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Portfolio BTS SIO — Kael Vitelius &nbsp;|&nbsp; Digicel Caribbean Ltd &nbsp;|&nbsp;
+     <a href="https://github.com/DavidVitelius/lab-securite-8021x" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>

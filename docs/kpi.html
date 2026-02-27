@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI — Lab Sécurité 802.1X</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">🔐 <span>Lab</span> Sécurité 802.1X</a>
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="procedure.html">Procédure</a></li>
+      <li><a href="kpi.html" class="active">KPI</a></li>
+      <li><a href="acces-vm.html">Accès VMs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3rem 2rem;">
+  <div class="badge">Indicateurs de performance</div>
+  <h1>Tableau de bord KPI</h1>
+  <p>Mesure de l'efficacité et de la sécurité de la solution 802.1X déployée</p>
+</header>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">Indicateurs clés (objectifs)</h2>
+    <div class="divider"></div>
+    <p class="section-sub">Ces KPI seront mesurés en production via le script <code>kpi/Get-SecurityKPI.ps1</code></p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="val good">≥ 95%</div>
+        <div class="lbl">Taux de couverture certificats</div>
+        <div class="target">% de machines avec certificat valide</div>
+      </div>
+      <div class="kpi-card">
+        <div class="val good">≥ 99%</div>
+        <div class="lbl">Taux de succès 802.1X</div>
+        <div class="target">% d'authentifications réussies</div>
+      </div>
+      <div class="kpi-card">
+        <div class="val good">0</div>
+        <div class="lbl">Certificats expirés</div>
+        <div class="target">Zéro tolérance sur les certs expirés</div>
+      </div>
+      <div class="kpi-card">
+        <div class="val good">< 24h</div>
+        <div class="lbl">Délai d'auto-enrollment</div>
+        <div class="target">Temps pour recevoir un cert après join domaine</div>
+      </div>
+      <div class="kpi-card">
+        <div class="val good">0</div>
+        <div class="lbl">Intrusions non-authentifiées</div>
+        <div class="target">Connexions réseau sans certificat valide</div>
+      </div>
+      <div class="kpi-card">
+        <div class="val good">100%</div>
+        <div class="lbl">Ports 802.1X actifs</div>
+        <div class="target">% de ports réseau avec 802.1X activé</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">Comparaison Avant / Après</h2>
+    <div class="divider"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Indicateur</th>
+          <th>❌ Avant (sans 802.1X)</th>
+          <th>✅ Après (avec 802.1X)</th>
+          <th>Amélioration</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Authentification réseau</td>
+          <td>Mot de passe partagé</td>
+          <td>Certificat individuel</td>
+          <td class="tag-green">Identité unique garantie</td>
+        </tr>
+        <tr>
+          <td>Traçabilité des accès</td>
+          <td>Aucune</td>
+          <td>Log NPS horodaté par machine/user</td>
+          <td class="tag-green">100% tracé</td>
+        </tr>
+        <tr>
+          <td>Risque d'intrusion WiFi</td>
+          <td>Élevé (partage de clé)</td>
+          <td>Très faible (cert unique + PKI)</td>
+          <td class="tag-green">Risque fortement réduit</td>
+        </tr>
+        <tr>
+          <td>Révocation d'accès</td>
+          <td>Changement de mot de passe</td>
+          <td>Révocation immédiate du certificat</td>
+          <td class="tag-green">Immédiat et ciblé</td>
+        </tr>
+        <tr>
+          <td>Conformité sécurité</td>
+          <td>Non conforme</td>
+          <td>Conforme ISO 27001 / RGPD</td>
+          <td class="tag-green">Conformité atteinte</td>
+        </tr>
+        <tr>
+          <td>Gestion des accès invités</td>
+          <td>Impossible à distinguer</td>
+          <td>VLAN dédié sans certificat</td>
+          <td class="tag-green">Segmentation réseau</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2 class="section-title">Script de génération du rapport KPI</h2>
+    <div class="divider"></div>
+    <p style="color: var(--muted); margin-bottom: 1rem;">
+      Le script PowerShell génère automatiquement un rapport HTML avec tous les indicateurs,
+      à exécuter périodiquement (hebdomadaire) sur DC01.
+    </p>
+    <pre><code># Sur DC01 — Générer le rapport KPI
+.\kpi\Get-SecurityKPI.ps1
+
+# Automatiser via une tâche planifiée (chaque lundi à 8h)
+$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 08:00
+$action  = New-ScheduledTaskAction -Execute 'PowerShell.exe' `
+           -Argument '-File C:\lab-securite-8021x\kpi\Get-SecurityKPI.ps1'
+Register-ScheduledTask -TaskName 'KPI-Securite-8021X' `
+    -Trigger $trigger -Action $action -RunLevel Highest</code></pre>
+
+    <p style="margin-top: 1.5rem; color: var(--muted);">
+      📄 Le rapport est généré dans <code>C:\KPI\KPI-Securite-YYYY-MM-DD.html</code>
+      et s'ouvre automatiquement dans le navigateur.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>Portfolio BTS SIO — Kael Vitelius &nbsp;|&nbsp; Digicel Caribbean Ltd &nbsp;|&nbsp;
+     <a href="https://github.com/DavidVitelius/lab-securite-8021x" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>

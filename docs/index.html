@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio BTS SIO — Lab Sécurité 802.1X</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">🔐 <span>Lab</span> Sécurité 802.1X</a>
+    <ul>
+      <li><a href="index.html" class="active">Accueil</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="procedure.html">Procédure</a></li>
+      <li><a href="kpi.html">KPI</a></li>
+      <li><a href="acces-vm.html">Accès VMs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="badge">BTS SIO — Portfolio</div>
+  <h1>Sécurisation du réseau d'entreprise<br>par certificats 802.1X</h1>
+  <p>Mise en place d'une infrastructure PKI deux niveaux et d'une authentification réseau
+     par certificats numériques (EAP-TLS) pour WiFi et Ethernet — Digicel Caribbean Ltd.</p>
+  <div class="hero-btns">
+    <a href="procedure.html" class="btn btn-primary">📋 Voir la procédure</a>
+    <a href="architecture.html" class="btn btn-outline">🗺️ Architecture</a>
+    <a href="acces-vm.html" class="btn btn-accent">🖥️ Accéder aux VMs</a>
+  </div>
+</header>
+
+<!-- CONTEXTE -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Contexte du projet</h2>
+    <div class="divider"></div>
+    <p class="section-sub">Problématique identifiée et demande interne de l'entreprise</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">⚠️</div>
+        <h3>Problème identifié</h3>
+        <p>Le réseau WiFi et Ethernet de Digicel Caribbean était accessible avec un simple mot de passe partagé, sans identification individuelle des machines ou utilisateurs.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h3>Objectif</h3>
+        <p>Remplacer l'authentification par mot de passe par des <strong>certificats numériques individuels</strong> via le protocole 802.1X / EAP-TLS, pour tracer et contrôler chaque accès.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Bénéfice attendu</h3>
+        <p>Amélioration mesurable de la sécurité réseau via des KPI : taux de couverture certificats ≥ 95%, taux de succès 802.1X ≥ 99%, zéro intrusion non-authentifiée.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPÉTENCES BTS -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Compétences BTS SIO mobilisées</h2>
+    <div class="divider"></div>
+
+    <div class="cards">
+      <div class="card" style="border-color: #107c10;">
+        <div class="card-icon">🏗️</div>
+        <h3>B1.1 — Infrastructure réseau</h3>
+        <p>Conception et mise en place de l'architecture réseau sécurisée (VLAN, 802.1X, RADIUS).</p>
+      </div>
+      <div class="card" style="border-color: #107c10;">
+        <div class="card-icon">🔑</div>
+        <h3>B1.3 — Sécurité des infrastructures</h3>
+        <p>PKI deux niveaux (Root CA / SubCA), gestion du cycle de vie des certificats, GPO d'auto-enrollment.</p>
+      </div>
+      <div class="card" style="border-color: #107c10;">
+        <div class="card-icon">📜</div>
+        <h3>B1.4 — Documentation</h3>
+        <p>Rédaction des procédures techniques, schémas d'architecture, rapport KPI pour le commanditaire.</p>
+      </div>
+      <div class="card" style="border-color: #d47900;">
+        <div class="card-icon">⚙️</div>
+        <h3>B2.2 — Automatisation</h3>
+        <p>Scripts PowerShell d'installation et configuration automatisée de l'ensemble des composants.</p>
+      </div>
+      <div class="card" style="border-color: #d47900;">
+        <div class="card-icon">📈</div>
+        <h3>B2.3 — Supervision</h3>
+        <p>Génération automatique de rapports KPI HTML mesurant l'efficacité de la solution déployée.</p>
+      </div>
+      <div class="card" style="border-color: #d47900;">
+        <div class="card-icon">🌐</div>
+        <h3>B3.1 — Travail en équipe</h3>
+        <p>Gestion du projet via Git/GitHub (versioning, dépôt clair et maintenable, documentation web).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGIES -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Technologies utilisées</h2>
+    <div class="divider"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Technologie</th>
+          <th>Rôle dans le projet</th>
+          <th>Version</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Windows Server 2022</td><td>OS des serveurs du lab (DC, CA, NPS)</td><td>21H2</td></tr>
+        <tr><td>Active Directory DS</td><td>Annuaire, authentification, GPO</td><td>—</td></tr>
+        <tr><td>Active Directory CS</td><td>Infrastructure PKI (Root CA + SubCA)</td><td>—</td></tr>
+        <tr><td>NPS (RADIUS)</td><td>Serveur d'authentification 802.1X</td><td>—</td></tr>
+        <tr><td>EAP-TLS</td><td>Protocole d'authentification par certificat</td><td>IEEE 802.1X</td></tr>
+        <tr><td>Apache Guacamole</td><td>Accès sécurisé aux VMs via navigateur (HTML5)</td><td>1.5.x</td></tr>
+        <tr><td>VMware</td><td>Virtualisation des machines du lab</td><td>—</td></tr>
+        <tr><td>PowerShell</td><td>Automatisation de l'installation et la config</td><td>5.1+</td></tr>
+        <tr><td>Git / GitHub</td><td>Versioning et hébergement du code</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ACCES VM PREVIEW -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Accès aux machines virtuelles</h2>
+    <div class="divider"></div>
+    <p class="section-sub">Les VMs du lab sont accessibles via Apache Guacamole (RDP over HTTPS)</p>
+
+    <div class="access-panel">
+      <h3>🖥️ Portail d'accès sécurisé</h3>
+      <p>Accès aux VMs directement depuis le navigateur, sans client RDP. Connexion sécurisée via HTTPS + authentification.</p>
+      <div class="vm-list">
+        <div class="vm-card">
+          <div class="vm-icon">🏢</div>
+          <div class="vm-name">DC01</div>
+          <div class="vm-role">Contrôleur de domaine</div>
+          <a href="acces-vm.html#dc01" class="vm-btn">Accéder →</a>
+        </div>
+        <div class="vm-card">
+          <div class="vm-icon">🔐</div>
+          <div class="vm-name">RootCA01</div>
+          <div class="vm-role">CA Racine</div>
+          <a href="acces-vm.html#rootca" class="vm-btn">Accéder →</a>
+        </div>
+        <div class="vm-card">
+          <div class="vm-icon">🏅</div>
+          <div class="vm-name">SubCA01 / NPS</div>
+          <div class="vm-role">CA Subordonnée + RADIUS</div>
+          <a href="acces-vm.html#subca" class="vm-btn">Accéder →</a>
+        </div>
+        <div class="vm-card">
+          <div class="vm-icon">💻</div>
+          <div class="vm-name">Client01</div>
+          <div class="vm-role">Poste client test 802.1X</div>
+          <a href="acces-vm.html#client" class="vm-btn">Accéder →</a>
+        </div>
+      </div>
+    </div>
+
+    <p style="color: var(--muted); font-size: .9rem; margin-top: 1rem;">
+      ℹ️ Voir la <a href="acces-vm.html" style="color: var(--primary);">page d'accès complet</a>
+      pour les instructions de connexion et la configuration Guacamole.
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Portfolio BTS SIO — Kael Vitelius &nbsp;|&nbsp; Digicel Caribbean Ltd &nbsp;|&nbsp;
+     <a href="https://github.com/DavidVitelius/lab-securite-8021x" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>

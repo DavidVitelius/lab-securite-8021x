@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — Lab Sécurité 802.1X</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="index.html" class="logo">🔐 <span>Lab</span> Sécurité 802.1X</a>
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="architecture.html" class="active">Architecture</a></li>
+      <li><a href="procedure.html">Procédure</a></li>
+      <li><a href="kpi.html">KPI</a></li>
+      <li><a href="acces-vm.html">Accès VMs</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" style="padding: 3rem 2rem;">
+  <div class="badge">Architecture technique</div>
+  <h1>Infrastructure PKI & 802.1X</h1>
+  <p>Schéma réseau, hiérarchie PKI et flux d'authentification EAP-TLS</p>
+</header>
+
+<!-- SCHÉMA RÉSEAU -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Schéma réseau du lab</h2>
+    <div class="divider"></div>
+
+    <div style="background: #1e1e2e; border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+      <pre><code style="color: #cdd6f4;">
+                    DOMAINE : lab.local — 192.168.10.0/24
+    ┌─────────────────────────────────────────────────────────────┐
+    │                                                             │
+    │  [DC01]              [RootCA01]          [SubCA01]          │
+    │  192.168.10.10       192.168.10.20       192.168.10.30      │
+    │  ├ Active Directory  ├ CA Racine         ├ CA Subordonnée   │
+    │  ├ DNS               │  Standalone       ├ NPS / RADIUS     │
+    │  ├ DHCP              │  Hors ligne       └ Web Enrollment   │
+    │  └ GPO               │  après déploiement                   │
+    │                      └─────────────────────────────────────  │
+    └─────────────────────────────────────────────────────────────┘
+                                    │
+               ┌────────────────────┴────────────────────┐
+               │                                         │
+       [Switch 802.1X]                          [AP WiFi 802.1X]
+       192.168.10.1                             192.168.10.2
+               │                                         │
+     ┌─────────┘                             ┌───────────┘
+     │                                       │
+[Client01] — Ethernet                 [Client02] — WiFi
+Certificat auto-enrollment            Certificat auto-enrollment
+EAP-TLS authentifié                   EAP-TLS authentifié
+
+  [Gateway01] — 192.168.10.40
+  Apache Guacamole (Ubuntu)
+  Accès sécurisé HTTPS aux VMs
+</code></pre>
+    </div>
+
+    <!-- TABLEAU VMs -->
+    <h2 class="section-title">Machines virtuelles</h2>
+    <div class="divider"></div>
+    <table>
+      <thead>
+        <tr><th>Machine</th><th>Rôles Windows</th><th>IP</th><th>RAM</th><th>OS</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>DC01</strong></td><td>AD DS, DNS, DHCP, Group Policy</td><td>192.168.10.10</td><td>2 GB</td><td>Windows Server 2022</td></tr>
+        <tr><td><strong>RootCA01</strong></td><td>AD CS – Root CA (Standalone)</td><td>192.168.10.20</td><td>1 GB</td><td>Windows Server 2022</td></tr>
+        <tr><td><strong>SubCA01</strong></td><td>AD CS – SubCA, NPS, Web Enrollment</td><td>192.168.10.30</td><td>2 GB</td><td>Windows Server 2022</td></tr>
+        <tr><td><strong>Gateway01</strong></td><td>Apache Guacamole (portail accès VMs)</td><td>192.168.10.40</td><td>1 GB</td><td>Ubuntu Server 22.04</td></tr>
+        <tr><td><strong>Client01</strong></td><td>Poste client 802.1X (test)</td><td>DHCP</td><td>2 GB</td><td>Windows 11</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- HIÉRARCHIE PKI -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Hiérarchie PKI (Two-Tier)</h2>
+    <div class="divider"></div>
+
+    <div style="background: #1e1e2e; border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+      <pre><code style="color: #cdd6f4;">
+  RootCA01  (Standalone — Hors domaine — Mise hors ligne après déploiement)
+  │  Clé : RSA 4096 bits — SHA256 — Durée : 10 ans
+  │
+  └── SubCA01  (Enterprise — Jointe au domaine lab.local)
+          Clé : RSA 2048 bits — SHA256 — Durée : 5 ans
+          │
+          ├── 🖥️ Certificats Ordinateur  (template: Computer)
+          │       → Auto-enrollment via GPO
+          │       → Utilisé pour 802.1X Ethernet
+          │
+          ├── 👤 Certificats Utilisateur  (template: User)
+          │       → Auto-enrollment via GPO
+          │       → Utilisé pour 802.1X WiFi
+          │
+          └── 📡 Certificat Serveur NPS  (template: RASAndIASServer)
+                  → Authenticité du serveur RADIUS
+                  → Validé par le client avant envoi du certificat
+</code></pre>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🏛️</div>
+        <h3>Root CA — Autorité racine</h3>
+        <p>Sommet de la chaîne de confiance. Autonome (Standalone), non jointe au domaine.
+           Mise hors ligne après signature de la SubCA. Clé RSA 4096 bits.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏅</div>
+        <h3>Sub CA — Autorité émettrice</h3>
+        <p>Émet les certificats pour les utilisateurs, les machines et le serveur NPS.
+           Jointe au domaine, intégrée à Active Directory. Auto-enrollment activé via GPO.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <h3>NPS — Serveur RADIUS</h3>
+        <p>Reçoit les demandes d'authentification 802.1X des switches et AP WiFi.
+           Vérifie les certificats clients, consulte AD, autorise ou refuse l'accès.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLUX 802.1X -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Flux d'authentification 802.1X / EAP-TLS</h2>
+    <div class="divider"></div>
+
+    <div style="background: #1e1e2e; border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+      <pre><code style="color: #cdd6f4;">
+  Client                Switch / AP          NPS (RADIUS)           Active Directory
+    │                       │                      │                        │
+    │──── EAPOL-Start ──────►                      │                        │
+    │                       │──── RADIUS Access ───►                        │
+    │                       │     Request (Identity)│                        │
+    │◄─── EAP-Request ──────│◄─── EAP-Request ─────│                        │
+    │     (Identity)        │                      │                        │
+    │──── EAP-Response ─────►─── RADIUS Access ────►                        │
+    │     (Username)        │     Request           │                        │
+    │                       │                      │── Vérifie certificat ──►
+    │◄─── EAP-TLS Start ────│◄─── EAP-Request ─────│                        │
+    │                       │     (TLS Start)       │                        │
+    │──── TLS ClientHello ──►─── RADIUS ───────────►                        │
+    │◄─── TLS ServerHello ──│◄─── Certificat NPS ──│                        │
+    │     (Cert NPS)        │                      │                        │
+    │──── Certificat Client ►─── RADIUS ───────────►── Vérifie dans AD ─────►
+    │                       │                      │◄── Compte valide ───────│
+    │                       │◄─── RADIUS ──────────│                        │
+    │                       │     Access-Accept     │                        │
+    │◄─── EAP-Success ──────│                      │                        │
+    │                       │                      │                        │
+    │    ✅ ACCÈS RÉSEAU ACCORDÉ                                             │
+</code></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Portfolio BTS SIO — Kael Vitelius &nbsp;|&nbsp; Digicel Caribbean Ltd &nbsp;|&nbsp;
+     <a href="https://github.com/DavidVitelius/lab-securite-8021x" target="_blank">GitHub</a></p>
+</footer>
+
+</body>
+</html>
